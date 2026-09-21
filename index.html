@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catch the Fruits</title>
+<style>
+  body { margin:0; font-family: Arial, sans-serif; background:#0f2028; color:#fff;
+         display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh;}
+  h1 { color:#ffd60a; margin-bottom:2px; }
+  #board { border:2px solid #78bdf8; background:#1e3a5f; position:relative;
+           overflow:hidden; box-shadow:0 8px 30px rgba(0,0,0,.6); }
+  #paddle { position:absolute; bottom:8px; left:0; width:90px; height:14px;
+            background:#4d79ff; border-radius:7px; box-shadow:0 2px 6px rgba(0,0,0,.5); }
+  #score { color:#ffd60a; font-size:22px; margin-bottom:6px; }
+</style>
+</head>
+<body>
+  <h1>🍎 Catch the Fruits 🍓</h1>
+  <div id="score">Score: 0 &nbsp;|&nbsp; Lives: 3</div>
+  <div id="board"><div id="paddle"></div></div>
+  <p style="color:#9be7ff; font-size:12px">Move paddle with mouse (or left/right arrow keys). Catch 50 to win!</p>
+
+<script>
+const board = document.getElementById('board');
+const paddle = document.getElementById('paddle');
+const scoreEl = document.getElementById('score');
+
+function sizeBoard(){
+  const w = Math.min(window.innerWidth - 20, 640);
+  const h = Math.min(window.innerHeight - 140, 480);
+  board.style.width = w + 'px';
+  board.style.height = h + 'px';
+  paddle.style.left = (w/2 - 45) + 'px';
+}
+sizeBoard(); window.addEventListener('resize', sizeBoard);
+
+const FRUIT = ['\u1F34E','\u1F353','\u1F34C','\u1F347','\u1F349'];
+let score = 0, lives = 3, target = 50;
+let fruit = null, nextSpawn = Date.now() + 600, last = Date.now();
+let keyLeft = false, keyRight = false;
+
+function drawScore(){
+  scoreEl.innerHTML = 'Score: ' + score + ' &nbsp;|&nbsp; Lives: ' + lives;
+}
+
+function spawnFruit(){
+  const fr = document.createElement('div');
+  fr.textContent = FRUIT[Math.floor(Math.random()*FRUIT.length)];
+  fr.style.cssText = 'position:absolute; top:0; font-size:30px; line-height:1; z-index:2; text-shadow:2px 2px 0 rgba(0,0,0,.5);';
+  fr.style.left = (Math.random()*(board.clientWidth - 34)) + 'px';
+  board.appendChild(fr);
+  fruit = fr;
+}
+spawnFruit(); drawScore();
+
+board.addEventListener('mousemove', (e) => {
+  const r = board.getBoundingClientRect();
+  paddle.style.left = (e.clientX - r.left - 45) + 'px';
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') keyLeft = true;
+  if (e.key === 'ArrowRight') keyRight = true;
+});
+window.addEventListener('keyup', (e) => {
+  if (e.key === 'ArrowLeft') keyLeft = false;
+  if (e.key === 'ArrowRight') keyRight = false;
+});
+
+function over(won){
+  const div = document.createElement('div');
+  div.textContent = (won ? '\u1F389 You won! \u1F389' : '\u1F480 Game over!') + '\nScore: ' + score;
+  div.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:30px; color:#ffd60a; z-index:10; padding:15px 22px; background:rgba(0,0,0,.85); border-radius:12px; text-align:center; white-space:pre-line;';
+  const btn = document.createElement('button');
+  btn.textContent = 'Play again';
+  btn.style.cssText = 'display:block; margin:14px auto 0; padding:10px 24px; font-size:16px; background:#4d79ff; color:#fff; border:none; border-radius:8px; cursor:pointer;';
+  btn.onclick = () => location.reload();
+  div.appendChild(btn);
+  board.appendChild(div);
+  fruit = null;
+}
+
+function update(dt){
+  const w = board.clientWidth;
+  if (keyLeft)  paddle.style.left = Math.max(0, (parseFloat(paddle.style.left)||0) - 600*dt) + 'px';
+  if (keyRight) paddle.style.left = Math.min(w-90, (parseFloat(paddle.style.left)||0) + 600*dt) + 'px';
+
+  if (!fruit && Date.now() >= nextSpawn) spawnFruit();
+  if (!fruit) return;
+
+  const speed = 170 + score*2.5;
+  const ft = (parseFloat(fruit.style.top)||0) + speed*dt;
+  fruit.style.top = ft + 'px';
+
+  const fH = 34;
+  const pH = paddle.offsetHeight || 14;
+  const pTop = board.clientHeight - pH - 8;
+  const pBot = board.clientHeight - 8;
+  const pl = parseFloat(paddle.style.left)||0;
+  const pW = paddle.offsetWidth || 90;
+  const fx = parseFloat(fruit.style.left);
+
+  if (ft > board.clientHeight + fH){
+    board.removeChild(fruit); fruit = null;
+    lives--; nextSpawn = Date.now() + 800; drawScore();
+    if (lives <= 0) over(true);
+    return;
+  }
+
+  if (ft < pBot + 6 && ft + fH > pTop - 4 && fx < pl + pW + 8 && fx + 34 > pl - 8){
+    board.removeChild(fruit); fruit = null;
+    score++; nextSpawn = Date.now() + (500 + Math.random()*500); drawScore();
+    if (score >= target) over(false);
+  }
+}
+
+function tick(){
+  const now = Date.now();
+  const dt = Math.min((now - last)/1000, 0.05);
+  last = now;
+  update(dt);
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>
