@@ -1,0 +1,5 @@
+# Runtime / build artifacts — not part of the site
+server.log
+__pycache__/
+*.pyc
+.DS_Store

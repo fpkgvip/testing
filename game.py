@@ -28,7 +28,7 @@ HTML = r"""<!DOCTYPE html>
 </style>
 </head>
 <body>
-  <h1>🍎 Catch the Fruits 🍓</h1>
+  <h1>&#127822; Catch the Fruits &#127827;</h1>
   <div id="score">Score: 0 | Lives: 3</div>
   <div id="board"><div id="paddle"></div></div>
   <p style="color:#9be7ff; font-size:12px">Move paddle with mouse (or left/right arrow keys). Catch 50 to win!</p>
@@ -47,7 +47,8 @@ function sizeBoard(){
 }
 sizeBoard(); window.addEventListener('resize', sizeBoard);
 
-const FRUIT = ['🍎','🍓','🍌','🍇','🍉'];
+const EMOJI = (n) => String.fromCodePoint(n);
+const FRUIT = [EMOJI(0x1F34E), EMOJI(0x1F353), EMOJI(0x1F34C), EMOJI(0x1F347), EMOJI(0x1F349)];
 let score = 0, lives = 3, target = 50;
 let fruit = null, nextSpawn = Date.now() + 600, last = Date.now();
 let keyLeft = false, keyRight = false;
@@ -81,7 +82,7 @@ window.addEventListener('keyup', (e) => {
 
 function over(won){
   const div = document.createElement('div');
-  div.textContent = (won ? '🎉 You won! 🎉' : '💀 Game over!') + '\nScore: ' + score;
+  div.textContent = (won ? EMOJI(0x1F389) + ' You won! ' + EMOJI(0x1F389) : EMOJI(0x1F480) + ' Game over!') + '\nScore: ' + score;
   div.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:30px; color:#ffd60a; z-index:10; padding:15px 22px; background:rgba(0,0,0,.85); border-radius:12px; text-align:center; white-space:pre-line;';
   const btn = document.createElement('button');
   btn.textContent = 'Play again';
@@ -157,7 +158,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     with HTTPServer(("0.0.0.0", PORT), Handler) as httpd:
         link = f"http://localhost:{PORT}/"
-        print(f"🎮 Catch the Fruits is running at {link}")
+        print(f"[GAME] Catch the Fruits is running at {link}")
         print(f"   (host-exposed link: http://localhost:40351/)")
         try:
             httpd.serve_forever()
